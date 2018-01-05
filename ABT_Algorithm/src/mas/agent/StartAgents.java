@@ -17,7 +17,7 @@ import cz.agents.alite.communication.channel.DirectCommunicationChannel.Receiver
 public class StartAgents {
 
 	// Change the number of agents/queens here
-    final static int NAGENTS = 8;
+    final static int NAGENTS = 4;
 
     public static void main(String[] args) {
         startAgents(NAGENTS);
