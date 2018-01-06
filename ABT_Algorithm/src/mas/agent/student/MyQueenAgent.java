@@ -11,14 +11,16 @@ import cz.agents.alite.communication.Message;
 public class MyQueenAgent extends MASQueenAgent
 {
 	private Map _map;
+	private int _pos;
 	
     public MyQueenAgent(int agentId, int nAgents) {
 		// Leave this method as it is...
     	super(agentId, nAgents);
 		_map = new Map(nAgents);
-		Vector2D pos = new Vector2D(agentId, 0);
-		_map.AddAgentPos(agentId, pos);
+        _pos = 0;
 	}
+
+    private Vector2D GetPosition() { return new Vector2D(_pos, getAgentId()); }
 
 	@Override
 	protected void start(int agentId, int nAgents) {
@@ -26,12 +28,10 @@ public class MyQueenAgent extends MASQueenAgent
 		// e.g., you can start sending messages: 
 		//broadcast(new StringContent("Hello world"));
 
-		if(getAgentId() == 0)
+		if(getAgentId() != 0)
 			return;
 
-		Vector2D pos = _map.GetAgentPos(getAgentId());
-		CMessageBase msg = new CMessagePositionOk(agentId, pos);
-		sendMessage("0", msg.ToContent());
+        Step();
 	}
 
 	@Override
@@ -42,11 +42,12 @@ public class MyQueenAgent extends MASQueenAgent
         for (Message message : newMessages) {
 			CMessageBase msg = CMessageBase.CreateMessage(message);
 			//System.out.println(getAgentId() + ": Received a message from " + message.getSender() + " with the content " + message.getContent().toString());
-			System.out.println(msg.toString());
+			System.out.println(String.format("Agent %d: %s", getAgentId(), msg.toString()));
 			switch(msg.MessageType())
 			{
 				case PositionOk: PositionOkHandler((CMessagePositionOk)msg); break;
-				case AddNeighbour: AddNeighbourHandler((CMessageAddNeighbour)msg); break;
+                case NoGood: NoGoodHandler(); break;
+                case Solved: notifySolutionFound(_pos); break;
 			}
         }
         
@@ -66,25 +67,69 @@ public class MyQueenAgent extends MASQueenAgent
 
         // You can slow down the search process like this:
         try {
-            Thread.sleep(1000);
+            Thread.sleep(1);
         } catch (InterruptedException e) {}
 		
 	}
 
+    int FindForward()
+    {
+        if(_pos == -1)
+            _pos = 0;
+        Vector2D pos = GetPosition();
+        while(pos.x < _map.GetSize() && !_map.IsGoodPlace(pos))
+            pos.x++;
+        if(pos.x < _map.GetSize())
+            return pos.x;
+        return -1;
+    }
+
 	private void PositionOkHandler(CMessagePositionOk msg)
 	{
         _map.AddAgentPos(msg.GetSenderId(), msg.Position());
-        CheckLocalView();
+        if(msg.GetSenderId() == getAgentId() - 1)
+            Step();
 	}
 
-	private void CheckLocalView()
+    private void Step()
     {
-
+        _pos = FindForward();
+        if(_pos == -1)
+            SendNoGood();
+        else
+            SendPosition();
     }
 
-    private void AddNeighbourHandler(CMessageAddNeighbour msg)
-	{
+    void SendPosition()
+    {
+        if(getAgentId() == nAgents() - 1)
+        {
+            notifySolutionFound(_pos);
+            broadcast((new CMessageSolved(getAgentId())).ToContent());
+            return;
+        }
 
-	}
+        Vector2D pos = GetPosition();
+        CMessageBase msg = new CMessagePositionOk(getAgentId(), pos);
+        for(int i = getAgentId() + 1; i < nAgents(); i++)
+            sendMessage(String.format("%d", i), msg.ToContent());
+    }
 
+	private void SendNoGood()
+    {
+        if(getAgentId() == 0)
+        {
+            notifySolutionDoesNotExist();
+            return;
+        }
+
+        CMessageBase nogood_msg = new CMessageNoGood(getAgentId());
+        sendMessage(String.format("%d", getAgentId() - 1), nogood_msg.ToContent());
+    }
+
+    private void NoGoodHandler()
+    {
+        _pos++;
+        Step();
+    }
 }

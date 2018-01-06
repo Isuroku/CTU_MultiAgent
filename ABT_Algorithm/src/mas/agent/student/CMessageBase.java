@@ -46,13 +46,8 @@ public abstract class CMessageBase
         switch(inMsgType)
         {
             case PositionOk: msg = new CMessagePositionOk(SenderId); break;
-            case AddNeighbour: msg = new CMessageAddNeighbour(SenderId); break;
-//            case LetPass: msg = new CMessageLetPass(SenderId); break;
-//            case REnv: msg = new CMessageRefreshEnvironment(SenderId); break;
-//            case ChangeState: msg = new CMessageChangeState(SenderId); break;
-//            case TakeGold: msg = new CMessageTakeGold(SenderId); break;
-//            case GoldPicked: msg = new CMessageGoldPicked(SenderId); break;
-//            case PickUp: msg = new CMessagePickUp(SenderId); break;
+            case Solved: msg = new CMessageSolved(SenderId); break;
+            case NoGood: msg = new CMessageNoGood(SenderId); break;
         }
 
         if(msg != null && msg.Init(inMsgBody))

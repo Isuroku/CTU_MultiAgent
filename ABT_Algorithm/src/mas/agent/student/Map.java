@@ -2,7 +2,7 @@ package mas.agent.student;
 
 public class Map
 {
-    int _size;
+    private int _size;
 
     private int[] _agents;
 
@@ -14,8 +14,15 @@ public class Map
             _agents[i] = -1;
     }
 
-    private int CoordToIndex(int x, int y) { return y  * _size + x; }
-    private int CoordToIndex(Vector2D pos) { return pos.y  * _size + pos.x;}
+    int GetSize() { return _size; }
+
+    private int CoordToIndex(Vector2D pos)
+    {
+        int index = pos.y  * _size + pos.x;
+        if(index < 0 || index >= _size * _size)
+            throw new RuntimeException( String.format("Wrong pos %s", pos) );
+        return index;
+    }
 
     private Vector2D IndexToCoord(int index)
     {
@@ -24,25 +31,58 @@ public class Map
         return new Vector2D(x, y);
     }
 
-    public void AddAgentPos(int agentId, Vector2D position)
+    void AddAgentPos(int agentId, Vector2D position)
     {
+        RemoveAgent(agentId);
         int index = CoordToIndex(position);
         _agents[index] = agentId;
     }
 
-    public void RemoveAgent(int agentId)
+    private void RemoveAgent(int agentId)
     {
         for(int i = 0; i < _agents.length; i++)
             if(_agents[i] == agentId)
                 _agents[i] = -1;
     }
 
-    public Vector2D GetAgentPos(int agentId)
+    boolean IsGoodPlace(Vector2D pos)
     {
-        for(int i = 0; i < _agents.length; i++)
-            if(_agents[i] == agentId)
-                return IndexToCoord(i);
-        return null;
+        Vector2D v = new Vector2D(pos.x, 0);
+        for(; v.y < _size; v.y++)
+        {
+            if(_agents[CoordToIndex(v)] > -1)
+                return false;
+        }
+
+        v.Load(pos);
+        for(; v.x >=0 && v.y >= 0; v.x--, v.y--)
+        {
+            if(_agents[CoordToIndex(v)] > -1)
+                return false;
+        }
+
+        v.Load(pos);
+        for(; v.x < _size && v.y < _size; v.x++, v.y++)
+        {
+            if(_agents[CoordToIndex(v)] > -1)
+                return false;
+        }
+
+        v.Load(pos);
+        for(; v.x >= 0 && v.y < _size; v.x--, v.y++)
+        {
+            if(_agents[CoordToIndex(v)] > -1)
+                return false;
+        }
+
+        v.Load(pos);
+        for(; v.x < _size && v.y >= 0; v.x++, v.y--)
+        {
+            if(_agents[CoordToIndex(v)] > -1)
+                return false;
+        }
+
+        return true;
     }
 }
 

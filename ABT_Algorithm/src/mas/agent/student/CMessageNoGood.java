@@ -1,14 +1,14 @@
 package mas.agent.student;
 
-public class CMessageAddNeighbour extends CMessageBase
+public class CMessageNoGood extends CMessageBase
 {
-    public CMessageAddNeighbour(int sender_id)
+    public CMessageNoGood(int sender_id)
     {
         super(sender_id);
     }
 
     @Override
-    public EMessageType MessageType() { return EMessageType.AddNeighbour; }
+    public EMessageType MessageType() { return EMessageType.NoGood; }
 
     @Override
     public boolean Init(String inMsgBody) { return true; }
