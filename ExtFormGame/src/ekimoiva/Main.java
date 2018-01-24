@@ -9,6 +9,8 @@ import ilog.cplex.IloCplex;
 import javafx.util.Pair;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class Main
@@ -114,6 +116,37 @@ public class Main
         return sb.toString();
     }
 
+    static String[] _ex_file;
+    private static String ReadAll(String filePath)
+    {
+        String content = "";
+        try
+        {
+            content = new String ( Files.readAllBytes( Paths.get(filePath) ) );
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        return content;
+    }
+
+    private static String ReadLineFromFile(String filePath)
+    {
+        if(_ex_file == null)
+        {
+            String txt = ReadAll(filePath);
+            _ex_file = txt.split(System.lineSeparator());
+        }
+
+        if(_line_count >= _ex_file.length)
+            return "";
+
+        String s = _ex_file[_line_count];
+        _line_count++;
+        return s;
+    }
+
     static String ReadLine(String[] args) throws IOException
     {
         String line;
@@ -124,7 +157,7 @@ public class Main
         else if(args.length > 0 && "3".equals(args[0]))
             line = ReadLineFromExample3();
         else
-            line = ReadLineFromStd();
+            line = ReadLineFromFile(args[0]);
         return line;
     }
 
@@ -132,8 +165,8 @@ public class Main
     {
         //SolveTest();
 
+        String line = ReadLineFromFile(args[0]);
 
-        String line = ReadLine(args);
         int line_count = -2;
 
         int map_h = 0;
